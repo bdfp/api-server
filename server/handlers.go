@@ -1,4 +1,4 @@
-package shadowfax
+package server
 
 import (
 	"database/sql"
