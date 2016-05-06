@@ -44,3 +44,34 @@ func AddBusiness(db *sql.DB, business Business) (int64, error) {
 
 	return business.ID, nil
 }
+
+type GetAllBusinessHTTPResponse struct {
+	Err bool `json:"error"`
+	Msg string `json:"msg"`
+	Business []Business `json:"business"`
+}
+
+//GetAllBusiness Get all the business
+func GetAllBusiness(db *sql.DB) ([]Business, error) {
+	//todo check if using pointers will help here
+	var businessArr []Business
+	rows, err := db.Query("SELECT * FROM business")
+	if err != nil {
+		return businessArr, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var business Business
+		err = rows.Scan(&business.ID, &business.Name, &business.City, &business.Email,
+			&business.Phone, &business.Latitude, &business.Longitude, &business.Rating)
+		if err != nil {
+			return businessArr, err
+		}
+
+		businessArr = append(businessArr, business)
+	}
+
+	err = rows.Err()
+	return businessArr, err
+}
