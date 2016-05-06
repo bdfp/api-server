@@ -6,6 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/shakdwipeea/shadowfax/domain"
 	"net/http"
+	"strconv"
 )
 
 //HTTPResponse general response
@@ -22,7 +23,9 @@ type Env struct {
 // RegisterHandlers adds the route handlers for various calls
 func RegisterHandlers(router *httprouter.Router, env Env) {
 	router.POST("/business", env.handleAddBusiness)
+	//todo see how to do pagination here
 	router.GET("/business", env.handleGetBusiness)
+	router.GET("/tags/:businessID", env.HandleGetTags)
 }
 
 //handleAddBusiness Route handler for adding business
@@ -32,18 +35,12 @@ func (e *Env) handleAddBusiness(w http.ResponseWriter, r *http.Request, _ httpro
 
 	var req domain.Business
 	if err = decoder.Decode(&req); err != nil {
-		SendResponse(w, HTTPErrorResponse{
-			Err:    true,
-			Reason: err.Error(),
-		})
+		SendErrorResponse(w, err.Error())
 		return
 	}
 
-	if req.ID, err = domain.AddBusiness(e.Db, req); err != nil {
-		SendResponse(w, HTTPErrorResponse{
-			Err:    true,
-			Reason: err.Error(),
-		})
+	if req.ID, err = domain.AddBusiness(e.Db, &req); err != nil {
+		SendErrorResponse(w, err.Error())
 		return
 	}
 
@@ -59,10 +56,7 @@ func (e *Env) handleAddBusiness(w http.ResponseWriter, r *http.Request, _ httpro
 func (e *Env) handleGetBusiness(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	businessArr, err := domain.GetAllBusiness(e.Db)
 	if err != nil {
-		SendResponse(w, HTTPErrorResponse{
-			Err:    true,
-			Reason: err.Error(),
-		})
+		SendErrorResponse(w, err.Error())
 		return
 	}
 
@@ -72,3 +66,26 @@ func (e *Env) handleGetBusiness(w http.ResponseWriter, r *http.Request, _ httpro
 		Business: businessArr,
 	})
 }
+
+//handleGetTags GET /tags/:businessId Get all tags of a business
+func (e *Env) HandleGetTags(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	businessID, err := strconv.Atoi(p.ByName("businessID"))
+	if err != nil {
+		SendErrorResponse(w, err.Error())
+	}
+
+	bID := int64(businessID)
+
+	bTags, err := domain.GetTagsOfBusiness(e.Db, &bID)
+	if err != nil {
+		SendErrorResponse(w, err.Error())
+		return
+	}
+
+	SendResponse(w, domain.BusinessTagDetailsHTTPResponse{
+		Err: false,
+		Msg: "tags retreived",
+		BusinessTags: *bTags,
+	})
+}
+

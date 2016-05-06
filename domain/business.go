@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"log"
 )
 
 //Business Model for the db table
@@ -24,7 +25,7 @@ type BusinessHTTPResponse struct {
 }
 
 //AddBusiness Add the provided business to DB
-func AddBusiness(db *sql.DB, business Business) (int64, error) {
+func AddBusiness(db *sql.DB, business *Business) (int64, error) {
 	stmt, err := db.Prepare("INSERT INTO business (name, city, primary_email, primary_phone," +
 		" latitude, longitude, overall_rating) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
@@ -37,12 +38,12 @@ func AddBusiness(db *sql.DB, business Business) (int64, error) {
 		return -1, err
 	}
 
-	business.ID, err = res.LastInsertId()
+	*business.ID, err = res.LastInsertId()
 	if err != nil {
 		return -1, err
 	}
 
-	return business.ID, nil
+	return *business.ID, nil
 }
 
 type GetAllBusinessHTTPResponse struct {
@@ -60,18 +61,28 @@ func GetAllBusiness(db *sql.DB) ([]Business, error) {
 		return businessArr, err
 	}
 
+	err = readAllBusinessRows(rows, &businessArr)
+	return businessArr, err
+}
+
+
+func readAllBusinessRows(rows *sql.Rows,b *[]Business) error {
+	var err error
+
 	defer rows.Close()
+
 	for rows.Next() {
 		var business Business
+
 		err = rows.Scan(&business.ID, &business.Name, &business.City, &business.Email,
 			&business.Phone, &business.Latitude, &business.Longitude, &business.Rating)
 		if err != nil {
-			return businessArr, err
+			log.Println("Error Occured while Reading row")
+		} else {
+			*b = append(*b, business)
 		}
-
-		businessArr = append(businessArr, business)
 	}
 
-	err = rows.Err()
-	return businessArr, err
+	rows.Close()
+	return rows.Err()
 }

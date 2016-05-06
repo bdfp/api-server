@@ -12,3 +12,10 @@ func SendResponse(w http.ResponseWriter, body interface{}) {
 		log.Println("Error reporting response", body)
 	}
 }
+
+func SendErrorResponse(w http.ResponseWriter, reason string) {
+	SendResponse(w, HTTPErrorResponse{
+		Err: true,
+		Reason: reason,
+	})
+}
