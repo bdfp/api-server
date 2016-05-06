@@ -22,6 +22,7 @@ type Env struct {
 
 // RegisterHandlers adds the route handlers for various calls
 func RegisterHandlers(router *httprouter.Router, env Env) {
+	router.POST("/business/tags", env.handleAddBusinessTags)
 	router.POST("/business", env.handleAddBusiness)
 	//todo see how to do pagination here
 	router.GET("/business", env.handleGetBusiness)
@@ -89,3 +90,22 @@ func (e *Env) HandleGetTags(w http.ResponseWriter, r *http.Request, p httprouter
 	})
 }
 
+//handleAddBusinessTags POST /business/tags  Add tag to a business
+func (e *Env) handleAddBusinessTags(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var req domain.BusinessTags
+	if err := ParseRequestBody(w, r, &req); err != nil {
+		SendErrorResponse(w, err.Error())
+		return
+	}
+
+	if err := domain.AddBusinessTag(e.Db, &req); err != nil {
+		SendErrorResponse(w, err.Error())
+		return
+	}
+
+	SendResponse(w, domain.BusinessTagHTTPResponse{
+		Err: false,
+		Msg: "Added tag",
+		BusinessTags: req,
+	})
+}

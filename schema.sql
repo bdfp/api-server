@@ -102,6 +102,7 @@ CREATE TABLE business_tags (
   id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   tag_id int(11) DEFAULT NULL ,
   business_id int(11) DEFAULT NULL ,
+  CONSTRAINT uc_tag_business UNIQUE (tag_id, business_id),
   FOREIGN KEY (business_id) REFERENCES business(id),
   FOREIGN KEY (tag_id) REFERENCES tag(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

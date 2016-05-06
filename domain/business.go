@@ -38,12 +38,12 @@ func AddBusiness(db *sql.DB, business *Business) (int64, error) {
 		return -1, err
 	}
 
-	*business.ID, err = res.LastInsertId()
+	business.ID, err = res.LastInsertId()
 	if err != nil {
 		return -1, err
 	}
 
-	return *business.ID, nil
+	return business.ID, nil
 }
 
 type GetAllBusinessHTTPResponse struct {

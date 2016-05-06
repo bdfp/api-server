@@ -19,3 +19,13 @@ func SendErrorResponse(w http.ResponseWriter, reason string) {
 		Reason: reason,
 	})
 }
+
+func ParseRequestBody(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(&v); err != nil {
+		log.Println("Could not read response")
+		return err
+	}
+	return nil
+}

@@ -12,14 +12,22 @@ type BusinessTags struct {
 	BusinessId int64 `json:"business_id"`
 }
 
+type BusinessTagHTTPResponse struct {
+	Err bool `json:"err"`
+	Msg string `json:"msg"`
+	BusinessTags BusinessTags `json:"business_tags"`
+}
+
+
 //AddBusinessTag Add business tag to the db
 func AddBusinessTag(db *sql.DB, rel *BusinessTags) error {
-	stmt, err := db.Prepare("INSERT INTO business_tags (id, tag_id) VALUES (?, ?")
+	//todo improve error handling in case of non unique tag addition
+	stmt, err := db.Prepare("INSERT INTO business_tags (id, tag_id, business_id) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
 
-	res, err := stmt.Exec(&rel.Id, &rel.TagId)
+	res, err := stmt.Exec(rel.Id, rel.TagId, rel.BusinessId)
 	if err != nil {
 		return err
 	}
