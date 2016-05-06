@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+	"github.com/shakdwipeea/shadowfax/server"
 	"log"
 	"net/http"
 )
@@ -43,14 +44,14 @@ func main() {
 
 	fmt.Println("Connecting to MYSQL database")
 
-	db, err := sql.Open("mysql", "root:@/vcrmusic")
+	db, err := sql.Open("mysql", "root:@/shadowfax")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 	defer db.Close()
 
 	// Set up encironment
-	env := shadowfax.Env{Db: db}
+	env := server.Env{Db: db}
 
 	router := httprouter.New()
 	router.GET("/", Index)
@@ -58,7 +59,7 @@ func main() {
 
 	//router.GET("/write", WriteToDb)
 
-	shadowfax.RegisterHandlers(router, env)
+	server.RegisterHandlers(router, env)
 
 	handler := cors.Default().Handler(router)
 
